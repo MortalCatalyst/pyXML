@@ -45,7 +45,7 @@ cur.execute("create table horses (" +
             + ")")
 
 # Now walk the tree and insert data.
-
+# sqlite trial
 filesToProcess = GetArgs()
 for meeting in filesToProcess:
     meetdata = [meeting.get(attr) for attr in meetattrs]
