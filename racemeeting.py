@@ -2,11 +2,14 @@ from pyquery import PyQuery as pq
 #import pandas as pd
 import psycopg2
 import argparse
+import os
 import glob
 
 
-def GetArgs(parser):
+def GetArgs():
     '''parse XML from command line'''
+    parser = argparse.ArgumentParser()
+
     parser.add_argument("path", nargs="+")
     parser.add_argument('-e', '--extension', default='',
                         help='File extension to filter by.')
@@ -16,7 +19,7 @@ def GetArgs(parser):
     name_pattern = "*" + args.extension
     for path in args.path:
         files.update(glob.glob(os.path.join(path, name_pattern)))
-  return files
+    return files
 
 
 meetattrs = ('id', 'venue', 'date', 'rail', 'weather', 'trackcondition')
@@ -41,17 +44,18 @@ with conn, conn.cursor() as cur:
                 + ")")
 
     # Now walk the tree and insert data.
-    for meeting in pq(filename="20160416RAND0.xml"):
-        meetdata = [meeting.get(attr) for attr in meetattrs]
-        cur.execute("insert into meetings values (" +
-                    ",".join(["%s"]*len(meetattrs)) + ")", meetdata)
-        for race in meeting.findall("race"):
-            race.set("meeting_id", meeting.get("id"))
-            racedata = [race.get(attr) for attr in raceattrs]
-            cur.execute("insert into races values (" +
-                        ",".join(["%s"]*len(raceattrs)) + ")", racedata)
-            for horse in race.findall("nomination"):
-                horse.set("race_id", race.get("id"))
-                horsedata = [horse.get(attr) for attr in horseattrs]
-                cur.execute("insert into horses values (" +
-                            ",".join(["%s"]*len(horseattrs)) + ")", horsedata)
+    for filename in sorted(GetArgs()):
+        for meeting in pq(filename=filename):
+            meetdata = [meeting.get(attr) for attr in meetattrs]
+            cur.execute("insert into meetings valueme in GetArgs():s (" +
+                        ",".join(["%s"]*len(meetattrs)) + ")", meetdata)
+            for race in meeting.findall("race"):
+                race.set("meeting_id", meeting.get("id"))
+                racedata = [race.get(attr) for attr in raceattrs]
+                cur.execute("insert into races values (" +
+                            ",".join(["%s"]*len(raceattrs)) + ")", racedata)
+                for horse in race.findall("nomination"):
+                    horse.set("race_id", race.get("id"))
+                    horsedata = [horse.get(attr) for attr in horseattrs]
+                    cur.execute("insert into horses values (" +
+                                ",".join(["%s"]*len(horseattrs)) + ")", horsedata)
