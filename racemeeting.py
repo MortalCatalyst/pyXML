@@ -17,8 +17,6 @@ my_dir = args.path[0]
 for dir_path, subdir_list, file_list in os.walk(my_dir):
     for name_pattern in file_list:
         full_path = os.path.join(dir_path, name_pattern)
-        print(full_path)
-        print(file_list)
 
 meetattrs = ('id', 'venue', 'date', 'rail', 'weather', 'trackcondition')
 raceattrs = ('id', 'meeting_id', 'number', 'shortname', 'stage', 'distance',
@@ -31,7 +29,7 @@ conn = psycopg2.connect("")
 with conn, conn.cursor() as cur:
         # First, create tables.
     cur.execute("drop table if exists meetings, races, horses")
-    cur.execute("create table meetings (id integer PRIMARY KEY, " +
+    cur.execute("create table meetings (" +
                 ", ".join("%s varchar" % fld for fld in meetattrs)
                 + ")")
     cur.execute("create table races (" +
@@ -55,6 +53,7 @@ with conn, conn.cursor() as cur:
                 for horse in race.findall("nomination"):
                     horse.set("race_id", race.get("id"))
                     horsedata = [horse.get(attr) for attr in horseattrs]
+                    print(horsedata)
                     cur.execute("insert into horses values (" +
                                 ",".join(["%s"] * len(horseattrs)) + ")",
                                 horsedata)
