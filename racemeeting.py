@@ -32,6 +32,7 @@ h_frames = pd.DataFrame()
 for filename in sorted(file_list):
     for meeting in pq(filename=my_dir + filename):
         meetdata = [meeting.get(attr) for attr in meetattrs]
+        print(meetdata)
         meetFrame = pd.DataFrame(meetdata)
         meetFrame = meetFrame.transpose()
         m_frames = m_frames.append(meetFrame)
