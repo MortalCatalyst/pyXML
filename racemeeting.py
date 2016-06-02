@@ -35,18 +35,63 @@ trainerdetails = ('trainernumber', 'trainersurname', 'trainertrack',
                   'rsbtrainername')
 jockeydetails = ('jockeynumber', 'jockeysurname', 'jockeyfirstname')
 
+# attrList = [meetattrs, raceattrs, horseattrs, horsedetails, trainerdetails,
+# jockeydetails]
+
+# pathItems = ['race','id','nomination']
+
 m_frames = pd.DataFrame()
 r_frames = pd.DataFrame()
 h_frames = pd.DataFrame()
 hd_frames = pd.DataFrame()
 td_frames = pd.DataFrame()
 jd_frames = pd.DataFrame()
+# x_frames = pd.DataFrame()
+
+# def RaceCSV(xmlList=attrList, filetoParse=file_list):
+#     """module to reduce the for loops"""
+#     for filename in sorted(filetoParse):
+#         for item in pq(filename=my_dir + filename):
+#             itemData = [item.get(attr) for attr in item]
+#             itemFrame = pd.DataFrame(itemData)
+#             itemFrame = itemFrame.transpose()
+#             x_frames = x_frames.append(itemFrame)
+#             pathCount = 0
+#             for detail in item.findall(pathItems[pathCount]):
+#
+
+stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+meet = 'meeting' + '_' + stamp + '.csv'
+raceName = 'race' + '_' + stamp + '.csv'
+horseName = 'horse' + '_' + stamp + '.csv'
+hdetail = 'hdetail' + '_' + stamp + '.csv'
+trainer = 'trainer' + '_' + stamp + '.csv'
+jockey = 'jockey' + '_' + stamp + '.csv'
+
+
+def writeFile(file, frame):
+    """Take a frame and write it to csv.
+
+    making this D400 compliant
+    """
+    print('Processed...' + str(file))
+    directory = '/home/sayth/Output'
+    # if not os.path.exists(directory):
+    #     os.makedirs(directory)
+    file = os.path.join(directory, file)
+    frame.to_csv(str(file), sep=',', encoding='utf-8')
+
+# filenamesToWrite = [meet, race, horse, hdetail, trainer, jockey]
+# frames = [m_frames, r_frames, h_frames, hd_frames, td_frames, jd_frames]
+
+screenOutput = 0
 
 for filename in sorted(file_list):
     for meeting in pq(filename=my_dir + filename):
         meetdata = [meeting.get(attr) for attr in meetattrs]
         meetFrame = pd.DataFrame(meetdata)
         meetFrame = meetFrame.transpose()
+        print(meetFrame)
         m_frames = m_frames.append(meetFrame)
         for race in meeting.findall("race"):
             race.set("meeting_id", meeting.get("id"))
@@ -66,47 +111,39 @@ for filename in sorted(file_list):
                     hdetailsFrame = pd.DataFrame(hdetailsdata)
                     hdetailsFrame = hdetailsFrame.transpose()
                     hd_frames = hd_frames.append(hdetailsFrame)
-                    for tdetails in race.findall("nomination"):
-                        trainerdata = [tdetails.get(attr)
-                                       for attr in trainerdetails]
-                        tdetailsFrame = pd.DataFrame(trainerdata)
-                        tdetailsFrame = tdetailsFrame.transpose()
-                        td_frames = td_frames.append(tdetailsFrame)
-                        for jdetails in race.findall("nomination"):
-                            jockeydata = [jdetails.get(attr)
-                                          for attr in jockeydetails]
-                            jdetailsFrame = pd.DataFrame(jockeydata)
-                            jdetailsFrame = jdetailsFrame.transpose()
-                            print(jdetailsFrame)
-                            jd_frames = jd_frames.append(jdetailsFrame)
+
+for filename in sorted(file_list):
+    for meeting in pq(filename=my_dir + filename):
+        for tdetails in race.findall("nomination"):
+            trainerdata = [tdetails.get(attr) for attr in trainerdetails]
+            tdetailsFrame = pd.DataFrame(trainerdata)
+            tdetailsFrame = tdetailsFrame.transpose()
+            td_frames = td_frames.append(tdetailsFrame)
+            for jdetails in race.findall("nomination"):
+                jockeydata = [jdetails.get(attr) for attr in jockeydetails]
+                jdetailsFrame = pd.DataFrame(jockeydata)
+                jdetailsFrame = jdetailsFrame.transpose()
+                jd_frames = jd_frames.append(jdetailsFrame)
 
 m_frames.columns = meetattrs
+writeFile(meet, m_frames)
 r_frames.columns = raceattrs
+writeFile(raceName, r_frames)
 h_frames.columns = horseattrs
+writeFile(horseName, h_frames)
 hd_frames.columns = horsedetails
+writeFile(hdetail, hd_frames)
 td_frames.columns = trainerdetails
+writeFile(trainer, td_frames)
 jd_frames.columns = jockeydetails
-
-stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-meet = 'meeting' + '_' + stamp + '.csv'
-race = 'race' + '_' + stamp + '.csv'
-horse = 'horse' + '_' + stamp + '.csv'
-hdetail = 'hdetail' + '_' + stamp + '.csv'
-trainer = 'trainer' + '_' + stamp + '.csv'
-jockey = 'jockey' + '_' + stamp + '.csv'
-
-filenamesToWrite = [meet, race, horse, hdetail, trainer, jockey]
-frames = [m_frames, r_frames, h_frames, hd_frames, td_frames, jd_frames]
-
-directory = '../Output/'
-
-for fname in filenamesToWrite:
-    print('Processing...' + filenamesToWrite.index(fname))
-    for frame in frames:
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-    fname = os.path.join(directory, fname)
-    frame.to_csv(fname, sep=',', encoding='utf-8')
+writeFile(jockey, jd_frames)
+# for fname in filenamesToWrite:
+#     print('Processed...' + filenamesToWrite.index(file))
+#     for frame in frames:
+#         if not os.path.exists(directory):
+#             os.makedirs(directory)
+#     fname = os.path.join(directory, fname)
+#     frame.to_csv(fname, sep=',', encoding='utf-8')
 
 # conn = psycopg2.connect("")
 # with conn, conn.cursor() as cur:
