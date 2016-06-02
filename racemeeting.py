@@ -7,7 +7,9 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument("path", type=str, nargs="+")
-parser.add_argument('-e', '--extension', default='',
+parser.add_argument('-e',
+                    '--extension',
+                    default='',
                     help='File extension to filter by.')
 
 args = parser.parse_args()
@@ -18,17 +20,20 @@ for dir_path, subdir_list, file_list in os.walk(my_dir):
     for name_pattern in file_list:
         full_path = os.path.join(dir_path, name_pattern)
 
-meetattrs = ('id', 'venue', 'date', 'rail', 'weather', 'trackcondition','barriertrial')
+meetattrs = ('id', 'venue', 'date', 'rail', 'weather', 'trackcondition',
+             'barriertrial')
 raceattrs = ('id', 'meeting_id', 'number', 'shortname', 'stage', 'distance',
              'grade', 'age', 'weightcondition', 'fastesttime', 'sectionaltime',
-             'stage','name','time')
-horseattrs = ('id', 'race_id', 'horse', 'number', 'finished','blinkers', 'trainernumber',
-             'jockeynumber','career', 'thistrack','thisdistance', 'firstup','secondup',
-             'goodtrack','heavytrack','fasttrack','variedweight','weight', 'rating',
-             'pricestarting','decimalmargin','barrier')
-horsedetails = ('id','horse','sex','dob','description','age')
-trainerdetails = ('trainernumber','trainersurname','trainertrack','rsbtrainername')
-jockeydetails = ('jockeynumber','jockeysurname','jockeyfirstname')
+             'stage', 'name', 'time')
+horseattrs = ('id', 'race_id', 'horse', 'number', 'finished', 'blinkers',
+              'trainernumber', 'jockeynumber', 'career', 'thistrack',
+              'thisdistance', 'firstup', 'secondup', 'goodtrack', 'heavytrack',
+              'fasttrack', 'variedweight', 'weight', 'rating', 'pricestarting',
+              'decimalmargin', 'barrier')
+horsedetails = ('id', 'horse', 'sex', 'dob', 'description', 'age')
+trainerdetails = ('trainernumber', 'trainersurname', 'trainertrack',
+                  'rsbtrainername')
+jockeydetails = ('jockeynumber', 'jockeysurname', 'jockeyfirstname')
 
 m_frames = pd.DataFrame()
 r_frames = pd.DataFrame()
@@ -40,7 +45,6 @@ jd_frames = pd.DataFrame()
 for filename in sorted(file_list):
     for meeting in pq(filename=my_dir + filename):
         meetdata = [meeting.get(attr) for attr in meetattrs]
-        print(meetdata)
         meetFrame = pd.DataFrame(meetdata)
         meetFrame = meetFrame.transpose()
         m_frames = m_frames.append(meetFrame)
@@ -57,19 +61,23 @@ for filename in sorted(file_list):
                 horseFrame = horseFrame.transpose()
                 h_frames = h_frames.append(horseFrame)
                 for hdetails in race.findall("nomination"):
-                    hdetailsdata = [hdetails.get(attr) for attr in horsedetails]
+                    hdetailsdata = [hdetails.get(attr)
+                                    for attr in horsedetails]
                     hdetailsFrame = pd.DataFrame(hdetailsdata)
                     hdetailsFrame = hdetailsFrame.transpose()
                     hd_frames = hd_frames.append(hdetailsFrame)
                     for tdetails in race.findall("nomination"):
-                        trainerdata = [tdetails.get(attr) for attr in trainerdetails]
+                        trainerdata = [tdetails.get(attr)
+                                       for attr in trainerdetails]
                         tdetailsFrame = pd.DataFrame(trainerdata)
                         tdetailsFrame = tdetailsFrame.transpose()
                         td_frames = td_frames.append(tdetailsFrame)
                         for jdetails in race.findall("nomination"):
-                            jockeydata = [jdetails.get(attr) for attr in jockeydetails]
+                            jockeydata = [jdetails.get(attr)
+                                          for attr in jockeydetails]
                             jdetailsFrame = pd.DataFrame(jockeydata)
                             jdetailsFrame = jdetailsFrame.transpose()
+                            print(jdetailsFrame)
                             jd_frames = jd_frames.append(jdetailsFrame)
 
 m_frames.columns = meetattrs
@@ -79,7 +87,6 @@ hd_frames.columns = horsedetails
 td_frames.columns = trainerdetails
 jd_frames.columns = jockeydetails
 
-print(jd_frames)
 stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 meet = 'meeting' + '_' + stamp + '.csv'
 race = 'race' + '_' + stamp + '.csv'
@@ -87,16 +94,20 @@ horse = 'horse' + '_' + stamp + '.csv'
 hdetail = 'hdetail' + '_' + stamp + '.csv'
 trainer = 'trainer' + '_' + stamp + '.csv'
 jockey = 'jockey' + '_' + stamp + '.csv'
-m_frames.to_csv(os.path.join("C:\Users\Sayth\Dropbox\Analysis\Output",meet), sep=',', encoding='utf-8')
-r_frames.to_csv(os.path.join("C:\Users\Sayth\Dropbox\Analysis\Output",race), sep=',', encoding='utf-8')
-h_frames.to_csv(os.path.join("C:\Users\Sayth\Dropbox\Analysis\Output",horse), sep=',', encoding='utf-8')
-hd_frames.to_csv(os.path.join("C:\Users\Sayth\Dropbox\Analysis\Output",hdetail), sep=',', encoding='utf-8')
-td_frames.to_csv(os.path.join("C:\Users\Sayth\Dropbox\Analysis\Output",trainer), sep=',', encoding='utf-8')
-jd_frames.to_csv(os.path.join("C:\Users\Sayth\Dropbox\Analysis\Output",jockey), sep=',', encoding='utf-8')
 
-# print(meetFrame)
-# print(raceFrame)
-# print(horseFrame)
+filenamesToWrite = [meet, race, horse, hdetail, trainer, jockey]
+frames = [m_frames, r_frames, h_frames, hd_frames, td_frames, jd_frames]
+
+directory = '../Output/'
+
+for fname in filenamesToWrite:
+    print('Processing...' + filenamesToWrite.index(fname))
+    for frame in frames:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    fname = os.path.join(directory, fname)
+    frame.to_csv(fname, sep=',', encoding='utf-8')
+
 # conn = psycopg2.connect("")
 # with conn, conn.cursor() as cur:
 #         # First, create tables.
