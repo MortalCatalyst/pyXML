@@ -31,14 +31,9 @@ horseattrs = ('id', 'race_id', 'horse', 'number', 'finished', 'blinkers',
               'fasttrack', 'variedweight', 'weight', 'rating', 'pricestarting',
               'decimalmargin', 'barrier')
 horsedetails = ('id', 'horse', 'sex', 'dob', 'description', 'age')
-trainerdetails = ('trainernumber', 'trainersurname', 'trainertrack',
+trainerdetails = ('race_id', 'trainernumber', 'trainersurname', 'trainertrack',
                   'rsbtrainername')
-jockeydetails = ('jockeynumber', 'jockeysurname', 'jockeyfirstname')
-
-# attrList = [meetattrs, raceattrs, horseattrs, horsedetails, trainerdetails,
-# jockeydetails]
-
-# pathItems = ['race','id','nomination']
+jockeydetails = ('race_id', 'jockeynumber', 'jockeysurname', 'jockeyfirstname')
 
 m_frames = pd.DataFrame()
 r_frames = pd.DataFrame()
@@ -46,19 +41,6 @@ h_frames = pd.DataFrame()
 hd_frames = pd.DataFrame()
 td_frames = pd.DataFrame()
 jd_frames = pd.DataFrame()
-# x_frames = pd.DataFrame()
-
-# def RaceCSV(xmlList=attrList, filetoParse=file_list):
-#     """module to reduce the for loops"""
-#     for filename in sorted(filetoParse):
-#         for item in pq(filename=my_dir + filename):
-#             itemData = [item.get(attr) for attr in item]
-#             itemFrame = pd.DataFrame(itemData)
-#             itemFrame = itemFrame.transpose()
-#             x_frames = x_frames.append(itemFrame)
-#             pathCount = 0
-#             for detail in item.findall(pathItems[pathCount]):
-#
 
 stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 meet = 'meeting' + '_' + stamp + '.csv'
@@ -81,10 +63,65 @@ def writeFile(file, frame):
     file = os.path.join(directory, file)
     frame.to_csv(str(file), sep=',', encoding='utf-8')
 
-# filenamesToWrite = [meet, race, horse, hdetail, trainer, jockey]
-# frames = [m_frames, r_frames, h_frames, hd_frames, td_frames, jd_frames]
 
-screenOutput = 0
+filenamesToWrite = [meet, raceName, horseName, hdetail, trainer, jockey]
+
+frames = [m_frames, r_frames, h_frames, hd_frames, td_frames, jd_frames]
+attrList = [meetattrs, raceattrs, horseattrs, horsedetails, trainerdetails,
+            jockeydetails]
+
+# def RaceCSV(xmlList=attrList, filetoParse=file_list):
+#     """module to reduce the for loops.
+#
+#     Combining parsing to hopefully improve speed by
+#     reducing memory held while parsing
+#     """
+#     for filename in sorted(filetoParse):
+#         for frame in frames:
+#             for attrItem in attrList:
+#                 for item in pq(filename=my_dir + filename):
+#                     itemData = [item.get(attr) for attr in attrItem]
+#                     itemFrame = pd.DataFrame(itemData)
+#                     itemFrame = itemFrame.transpose()
+#                     frame = frame.append(itemFrame)
+#                     frame.columns = attrItem
+#                     for fileItem in filenamesToWrite:
+#                         writeFile(fileItem, frame)
+#                         print('Processed...' + str(fileItem))
+#                     if attrItem == raceattrs:
+#                         for race in item.findall("race"):
+#                             itemData = [item.get(attr) for attr in attrItem]
+#                             itemFrame = pd.DataFrame(itemData)
+#                             itemFrame = itemFrame.transpose()
+#                             frame = frame.append(itemFrame)
+#                             frame.columns = attrItem
+#                             for fileItem in filenamesToWrite:
+#                                 writeFile(fileItem, frame)
+#                                 print('Processed...' + str(fileItem))
+#                     elif attrItem == horsedetails:
+#                         for horse in item.findall("race"):
+#                             itemData = [item.get(attr) for attr in attrItem]
+#                             itemFrame = pd.DataFrame(itemData)
+#                             itemFrame = itemFrame.transpose()
+#                             frame = frame.append(itemFrame)
+#                             frame.columns = attrItem
+#                             for fileItem in filenamesToWrite:
+#                                 writeFile(fileItem, frame)
+#                                 print('Processed...' + str(fileItem))
+#                     else:
+#                         for idItems in item.findall("nomination"):
+#                             idItems.set("race_id", race.get("id"))
+#                             itemData = [item.get(attr) for attr in attrItem]
+#                             itemFrame = pd.DataFrame(itemData)
+#                             itemFrame = itemFrame.transpose()
+#                             frame = frame.append(itemFrame)
+#                             frame.columns = attrItem
+#                             for fileItem in filenamesToWrite:
+#                                 writeFile(fileItem, frame)
+#                                 print('Processed...' + str(fileItem))
+#
+#
+# RaceCSV()
 
 for filename in sorted(file_list):
     for meeting in pq(filename=my_dir + filename):
@@ -111,19 +148,18 @@ for filename in sorted(file_list):
                     hdetailsFrame = pd.DataFrame(hdetailsdata)
                     hdetailsFrame = hdetailsFrame.transpose()
                     hd_frames = hd_frames.append(hdetailsFrame)
-
-for filename in sorted(file_list):
-    for meeting in pq(filename=my_dir + filename):
-        for tdetails in race.findall("nomination"):
-            trainerdata = [tdetails.get(attr) for attr in trainerdetails]
-            tdetailsFrame = pd.DataFrame(trainerdata)
-            tdetailsFrame = tdetailsFrame.transpose()
-            td_frames = td_frames.append(tdetailsFrame)
-            for jdetails in race.findall("nomination"):
-                jockeydata = [jdetails.get(attr) for attr in jockeydetails]
-                jdetailsFrame = pd.DataFrame(jockeydata)
-                jdetailsFrame = jdetailsFrame.transpose()
-                jd_frames = jd_frames.append(jdetailsFrame)
+                    for tdetails in race.findall("nomination"):
+                        trainerdata = [tdetails.get(attr)
+                                       for attr in trainerdetails]
+                        tdetailsFrame = pd.DataFrame(trainerdata)
+                        tdetailsFrame = tdetailsFrame.transpose()
+                        td_frames = td_frames.append(tdetailsFrame)
+                        for jdetails in race.findall("nomination"):
+                            jockeydata = [jdetails.get(attr)
+                                          for attr in jockeydetails]
+                            jdetailsFrame = pd.DataFrame(jockeydata)
+                            jdetailsFrame = jdetailsFrame.transpose()
+                            jd_frames = jd_frames.append(jdetailsFrame)
 
 m_frames.columns = meetattrs
 writeFile(meet, m_frames)
@@ -137,6 +173,7 @@ td_frames.columns = trainerdetails
 writeFile(trainer, td_frames)
 jd_frames.columns = jockeydetails
 writeFile(jockey, jd_frames)
+
 # for fname in filenamesToWrite:
 #     print('Processed...' + filenamesToWrite.index(file))
 #     for frame in frames:
